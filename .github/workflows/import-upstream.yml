@@ -1,0 +1,26 @@
+name: Import upstream Projects app
+on:
+  push:
+    paths:
+      - '.github/workflows/import-upstream.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Copy complete upstream app
+        run: |
+          git clone --depth 1 https://github.com/HeyPuter/everything.git /tmp/puter-everything
+          cp -a /tmp/puter-everything/src/projects/. .
+          rm -rf /tmp/puter-everything
+          cp /tmp/puter-everything/LICENSE ./UPSTREAM-LICENSE 2>/dev/null || true
+          git add -A
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Import HeyPuter Projects application'
+            git push
+          fi
